@@ -1,50 +1,40 @@
-# UI/UX Pro Max Skills (Cursor)
+# HGV Cursor Skills
 
-Local Cursor skill suite cloned from [vorkr/ui-ux-pro-max-skill](https://github.com/vorkr/ui-ux-pro-max-skill) (upstream UI/UX Pro Max v2.5.0).
+Local Cursor Agent skills for Hilton Grand Vacations (HGV) app development. Skills live under `.cursor/skills/` and are discovered automatically.
 
-Skills live under `.cursor/skills/` so Cursor loads them in this project. This repo keeps a **lean** install (runtime search data + skill docs only — no upstream test fixtures or icon/font license dump files). See `SOURCE.md`.
+This repo stays **lean**: `SKILL.md` + essential references/scripts only — no upstream monorepos, test fixtures, or large catalog dumps. Full catalog: [`SKILLS.md`](SKILLS.md). Provenance: [`SOURCE.md`](SOURCE.md).
 
-## Installed skills
+## Suites
 
-| Skill | Purpose |
-|-------|---------|
-| `ui-ux-pro-max` | Searchable design intelligence (styles, palettes, fonts, UX, stacks, charts, motion) |
-| `ui-styling` | Styling patterns and implementation guidance |
-| `design` | Broader design workflow |
-| `design-system` | Design-system generation and tokens |
-| `brand` | Brand identity guidance |
-| `banner-design` | Banner / promo layout |
-| `slides` | Slide / presentation layouts |
+| Suite | Skills | Role |
+|-------|--------|------|
+| UI / UX Pro Max | `ui-ux-pro-max`, `ui-styling`, `design`, `design-system`, `brand`, `banner-design`, `slides` | Design intelligence, tokens, brand, slides |
+| Engineering | `grill-me`, `brainstorming`, `writing-plans`, `executing-plans`, `tdd`, `codebase-design`, `improve-codebase-architecture`, `code-review`, `security-review`, `systematic-debugging`, `verification-before-completion`, `web-design-guidelines`, `frontend-design`, `react-best-practices`, `updating-npm-package`, `release-readiness` | Research → plan → build → audit → ship |
 
-## Requirements
+## Recommended workflow
 
-- Python 3 (stdlib only) for the search scripts
-- No npm install required to *use* the skills
+**research → plan → implement → audit → polish → ship**
 
-## Quick use
+1. **Research** — `/grill-me` or `/brainstorming` to flush out requirements and design
+2. **Plan** — `/writing-plans` (optionally `/improve-codebase-architecture` for seams)
+3. **Implement** — `/executing-plans` with `/tdd`; apply `/react-best-practices` on React/Next work
+4. **Audit** — `/code-review`, `/security-review`; `/systematic-debugging` when stuck
+5. **Polish** — `ui-ux-pro-max` search + `/frontend-design` + `/web-design-guidelines`
+6. **Ship** — `/verification-before-completion`, `/release-readiness`; `/updating-npm-package` for deps
 
-From the project root:
+## UI Pro Max quick use
+
+Requires Python 3 (stdlib only). No npm install to *use* the search scripts.
 
 ```bash
-# Design system for a product
 python3 .cursor/skills/ui-ux-pro-max/scripts/search.py "saas fintech dashboard" --design-system -p "Acme Ops"
-
-# Domain search
 python3 .cursor/skills/ui-ux-pro-max/scripts/search.py "glassmorphism" --domain style -n 5
-
-# Stack guidance
 python3 .cursor/skills/ui-ux-pro-max/scripts/search.py "form validation" --stack nextjs
-
-# UX guidance that feeds UI tests / a11y cases
 python3 .cursor/skills/ui-ux-pro-max/scripts/search.py "keyboard focus modal" --domain ux
 ```
 
-In Cursor, ask for UI/UX work (landing pages, dashboards, reviews, design systems) **or** UI testing/QA (Playwright, state coverage, a11y smoke). After a reload, the agent should load these skills. For test planning, see `.cursor/skills/ui-ux-pro-max/references/ui-testing.md`.
-
-## Provenance
-
-See [`SOURCE.md`](SOURCE.md) for upstream commit, install method, and how to refresh.
+UI testing / QA reference: `.cursor/skills/ui-ux-pro-max/references/ui-testing.md`.
 
 ## License
 
-Upstream content is under the MIT license from the original project. See skill headers / upstream repo for details.
+Mixed permissive licenses per upstream (MIT, Apache-2.0, CC0, OWASP CC BY-SA for security reference material). See each skill folder and `SKILLS.md` / `SOURCE.md`.
