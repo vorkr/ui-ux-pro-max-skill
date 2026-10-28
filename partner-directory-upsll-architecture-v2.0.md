@@ -766,3 +766,413 @@ M = mandatory (v1.1 M01–M15), O = optional (v1.1 O01–O50), N = new in v2.0. 
 # 20. Change log
 
 v2.0 (28 Oct 2026): added five planes, control plane and Platform Data Mart, Activepieces automation plane and hand-off, versioned recipes with a reconciler, multi-hat organization model and access matrix, content vocabulary and Card Action registry, Inbox, knowledge base and AI services, Network layer, entity consolidation method, Journey Spec standard with 30 journeys and an exemplar, self-serve design, engineering practices, master feature register (105 features), gaps and a plan for fewer than five people.
+
+
+I can't attach files directly, but everything below is written as self-contained, copy-pasteable documents with filenames. Save each fenced block as the named .md file. They are designed to be dropped into a repo together and fed to an AI in order.
+
+Total artifact set: 15 documents. Reading order matters — each later document assumes the earlier ones.
+
+---
+
+ARTIFACT 00 — 00-README-artifact-index.md
+
+```markdown
+# Upsll / partner.directory — Architecture v2.0 Artifact Set
+
+Version 2.0 | 28 October 2026 | Owner: Founder | Audience: 3–4 person team + AI agents
+
+## What this set is
+A complete, executable architecture specification. It supersedes v1.1 for
+implementation purposes. v1.1 remains the source of strategy intent; this set
+is the source of implementation truth.
+
+## Authority and precedence
+If documents conflict, resolve in this order:
+1. `07-multi-hat-authorization-spec.md` (security invariants)
+2. `03-entity-ledger.md` (domain truth)
+3. `04-journey-state-machines.md` (process truth)
+4. `05-workflow-engine-adr.md` (execution truth)
+5. Everything else
+
+Never resolve a conflict by inventing a rule. Log it in
+`11-gap-register.md` and escalate.
+
+## Reading order for a human
+00 → 01 → 02 → 11 (gaps) → 03 → 07 → 04 → 05 → 06 → 08 → 09 → 10 → 12 → 14
+
+## Reading order for an AI agent
+The agent's role determines its inputs. See `12-agent-orchestration-protocol.md`.
+No agent reads the full set. Each agent reads its declared inputs only.
+
+## Artifact manifest
+| File | Purpose | Owner role | Blocks |
+|---|---|---|---|
+| 00-README-artifact-index.md | This index | — | — |
+| 01-code-reality-map.md | Factual audit of current code | Auditor | 02, 03 |
+| 02-denial-test-suite-spec.md | Authorization test design | Auditor→Executor | 07 |
+| 03-entity-ledger.md | 25 aggregates, dispositions, reconciliation | Planner | 04, 06, 08 |
+| 04-journey-state-machines.md | 12 journeys as YAML | Planner | 05, 10 |
+| 05-workflow-engine-adr.md | Stateless vs Windmill vs ActivePieces | Planner | 14 |
+| 06-content-pipeline-spec.md | Card/Page/Explorer/Publication | Planner | 08 |
+| 07-multi-hat-authorization-spec.md | Hat model, PDP, cross-matrix | Planner | 02, 04 |
+| 08-channel-recipe-versioning.md | Versioned channel composition | Planner | 14 |
+| 09-integration-adapter-contract.md | Adapters, Tools, isolation | Planner | 04 |
+| 10-workflow-audit-plane.md | Platform-level audit schema | Planner | 04, 14 |
+| 11-gap-register.md | 20 gaps found + resolutions | Auditor | all |
+| 12-agent-orchestration-protocol.md | Agent roles, file handoff | Founder | all |
+| 13-master-prompt.md | The orchestrator prompt | — | — |
+| 14-roadmap-and-budget.md | 12-week plan, tiers | Founder | — |
+
+## Definition of Done (applies to every artifact)
+An artifact is Done when:
+- Every table has no blank cells (use [A] explicitly if unknown)
+- Every ID referenced exists in another artifact or is defined here
+- Every invariant cited by ID matches 07
+- A Reviewer agent can verify it against 03 + 07 without asking questions
+
+## Version control
+All artifacts live in `/docs/architecture/` in the repo. Changes go through PR.
+A change to 03 or 07 requires founder approval. A change to 04 requires founder
+approval plus a migration note in 10.
+```
+
+---
+
+ARTIFACT 01 — 01-code-reality-map.md
+
+```markdown
+# Code Reality Map
+Status: TEMPLATE — Auditor must fill every cell. No blanks permitted.
+Purpose: Establish what the code ACTUALLY does before designing on top of it.
+Method: Static reading + targeted grep. No runtime testing in this artifact.
+
+## Instruction to Auditor
+You are read-only. You produce facts. You do NOT recommend, design, or fix.
+For every cell you cannot determine, write `UNKNOWN — needs <specific action>`
+and add a row to Section E6 (Unknown Register). Do not guess.
+
+---
+
+## E1. Application Inventory
+
+| App | Project path | Purpose | Auth entry point | Shared auth lib? | Notes |
+|---|---|---|---|---|---|
+| Directory (SSR) | | | | | |
+| Upsll web (BFF/SPA host) | | | | | |
+| API / modular monolith | | | | | |
+| Workers / hosted services | | | | | |
+| Admin console | | | | | |
+| Other: ______ | | | | | |
+
+**Question E1.1:** Do Directory and Upsll reference the SAME auth assembly, or
+two copies? Evidence: ______
+
+## E2. Policy Decision Points
+
+| # | Entry point (file:class:method) | Signature | Callers | Covers controllers? | Covers minimal APIs? | Covers workers? | Covers background jobs? |
+|---|---|---|---|---|---|---|---|
+| 1 | | | | | | | |
+| 2 | | | | | | | |
+
+**Count of distinct PDP entry points: ____**
+If > 1, flag as TRAP-1 candidate in E4.
+
+## E3. Endpoint Inventory and PDP Coverage
+
+Every routable endpoint gets a row. This table is the input to Artifact 02.
+
+| Route | Verb | Handler file | Calls PDP? (Y/N/UNKNOWN) | Resource check present? | Tenant source (server/client) | Notes |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+**Summary counts:** Total endpoints ___ | Call PDP ___ | Do not call PDP ___
+
+## E4. Bypass Risk Register
+
+| Trap | Present? (Y/N) | Evidence (file:line) | Severity | Fixes in artifact |
+|---|---|---|---|---|
+| T1 Attribute-only RBAC (`[Authorize(Roles=...)]` with no resource check) | | | | 07 |
+| T2 Tenant filter is the only guard (EF global filter, no resource check) | | | | 07 |
+| T3 Service-layer checks with direct-repo bypasses | | | | 02 |
+| T4 Workers bypass PDP | | | | 02, 10 |
+| T5 Per-app auth duplication (Directory vs Upsll drifted) | | | | 07 |
+| T6 Client-supplied tenant/org/hat ID trusted by server | | | | 07 |
+| T7 Public endpoint reads private table | | | | 06 |
+| T8 Private field leaks into hydration/JSON-LD | | | | 06 |
+
+Any T1–T8 = Y is a **P0 finding**. P0 findings block Phase 1 (see 14).
+
+## E5. Isolation and Projection Mechanisms
+
+| Mechanism | Present? | Where | Applied to which entities | Gaps |
+|---|---|---|---|---|
+| EF Core global query filter | | | | |
+| Explicit resource-level authorization | | | | |
+| Postgres row-level security (actually enabled?) | | | | |
+| Server-derived tenant (from session/claims) | | | | |
+| Public projection / DTO layer | | | | |
+| JSON-LD generation (source of data) | | | | |
+| SSR hydration payload construction | | | | |
+
+## E6. Unknown Register
+
+| # | Unknown | Why it matters | How to resolve | Owner | Blocking? |
+|---|---|---|---|---|---|
+| U1 | | | | | |
+
+## E7. Worker / Hosted Service Inventory
+
+| Worker | File | Trigger | Reads tenant data? | Calls PDP? | Idempotent? | DLQ? |
+|---|---|---|---|---|---|---|
+| | | | | | | |
+
+## E8. Data Access Inventory
+
+| DbContext | Owns which tables | Cross-module reads? | Module boundary respected? |
+|---|---|---|---|
+| | | | |
+
+## Auditor Sign-off Block
+- Endpoints inventoried: ____
+- Workers inventoried: ____
+- P0 findings: ____
+- Unknowns: ____
+- Statement: "This map contains no design recommendations." [ ] confirmed
+```
+
+---
+
+ARTIFACT 02 — 02-denial-test-suite-spec.md
+
+```markdown
+# Authorization Denial Test Suite — Design and Generation Spec
+Purpose: Prove that centralization is real BEFORE building the Hat model on it.
+Status: Spec complete. Executor generates code from this.
+
+## Why denial tests, not happy-path tests
+A happy-path test passes when authorization is broken but permissive.
+A denial test fails loudly when authorization is broken. Since you have zero
+integration tests, denial tests are the highest-value first investment: they
+are parameterized (cheap per endpoint) and they produce a regression net that
+protects every subsequent refactor.
+
+## Test taxonomy (7 classes — every endpoint gets at least classes 1, 2, 6)
+
+| Class | Name | Asserts | Applies to |
+|---|---|---|---|
+| D1 | Unauthenticated denial | No identity → 401 | Every endpoint |
+| D2 | Wrong-tenant denial | Valid identity, other tenant's resource ID → 403/404 | Every tenant-scoped endpoint |
+| D3 | Wrong-hat denial | Valid identity, valid tenant, insufficient capacity → 403 | Every capability-gated endpoint |
+| D4 | Expired-hat denial | Hat.valid_until in past → 403 | Every capability-gated endpoint |
+| D5 | Consent-revoked denial | Valid hat, revoked ConsentGrant → 403 | Every consent-scoped read/write |
+| D6 | Public-projection denial | Authenticated user requests private field via public route → field absent | Every public route |
+| D7 | Worker-scope denial | Worker processes message outside its tenant scope → rejected + dead-lettered | Every worker |
+
+## Test case generation rules
+
+### Rule G1 — Endpoint table is the source
+Generate one test per (endpoint × applicable class). Do not hand-write.
+The parameterization source is `01-code-reality-map.md` §E3.
+
+### Rule G2 — Fixtures are deterministic
+Three tenants (T1, T2, T3), three persons, three hats per person, fixed GUIDs.
+No random data. Every test uses the same seed so failures are reproducible.
+
+### Rule G3 — Assert on status AND side-effect
+For every denial, assert (a) the HTTP status, and (b) that no row was written
+to the target table. A test that only checks status will miss write-then-forbid bugs.
+
+### Rule G4 — Denial must not leak existence
+For cross-tenant access, the response must be identical whether the resource
+exists in another tenant or does not exist at all. Assert byte-equality of
+the response body. This is the IDOR-leak test.
+
+## C# skeleton (Executor expands this)
+
+```csharp
+[Collection("authorization")]
+public class AuthorizationDenialTests(TestHost host, Fixtures fx) : IClassFixture<TestHost>
+{
+    public static IEnumerable<object[]> TenantScopedEndpoints => EndpointCatalog.TenantScoped();
+
+    [Theory, MemberData(nameof(TenantScopedEndpoints))]
+    public async Task D1_Unauthenticated_IsDenied(EndpointCase c)
+    {
+        var res = await host.Anonymous().SendAsync(c.Request(fx.TenantA));
+        Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Theory, MemberData(nameof(TenantScopedEndpoints))]
+    public async Task D2_CrossTenant_IsDenied_AndDoesNotLeakExistence(EndpointCase c)
+    {
+        var asA = host.As(fx.PersonA);
+        var real = await asA.SendAsync(c.Request(fx.ResourceInTenantB));
+        var fake = await asA.SendAsync(c.Request(fx.NonExistentResource));
+        Assert.Equal(HttpStatusCode.Forbidden, real.StatusCode);
+        Assert.Equal(await real.Content.ReadAsStringAsync(),
+                     await fake.Content.ReadAsStringAsync());   // G4
+        Assert.Null(await c.Db.FindAsync(fx.ResourceInTenantB)); // G3
+    }
+
+    [Theory, MemberData(nameof(CapabilityGatedEndpoints))]
+    public async Task D3_WrongHat_IsDenied(EndpointCase c)
+    {
+        var asA = host.As(fx.PersonA).WithHat(fx.HatWithInsufficientCapacity);
+        var res = await asA.SendAsync(c.Request(fx.OwnTenantResource));
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Theory, MemberData(nameof(CapabilityGatedEndpoints))]
+    public async Task D4_ExpiredHat_IsDenied(EndpointCase c)
+    {
+        var asA = host.As(fx.PersonA).WithHat(fx.ExpiredHat);
+        var res = await asA.SendAsync(c.Request(fx.OwnTenantResource));
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Theory, MemberData(nameof(ConsentScopedEndpoints))]
+    public async Task D5_RevokedConsent_IsDenied(EndpointCase c)
+    {
+        await fx.RevokeConsentAsync(fx.ConsentGrant);
+        var res = await host.As(fx.PersonA).SendAsync(c.Request(fx.ConsentScopedResource));
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Theory, MemberData(nameof(PublicEndpoints))]
+    public async Task D6_PublicRoute_LeaksNoPrivateField(EndpointCase c)
+    {
+        var res = await host.As(fx.PersonA).SendAsync(c.Request(fx.OwnTenantResource));
+        var body = await res.Content.ReadAsStringAsync();
+        foreach (var forbidden in c.PrivateFieldNames)
+            Assert.DoesNotContain(forbidden, body, StringComparison.OrdinalIgnoreCase);
+        // Also check hydration payload and JSON-LD block
+    }
+
+    [Theory, MemberData(nameof(Workers))]
+    public async Task D7_Worker_CannotEscapeTenantScope(WorkerCase w)
+    {
+        var msg = w.BuildMessage(tenantId: fx.TenantB);
+        var res = await host.RunWorkerAsync(w.WorkerType, msg, scope: fx.TenantA);
+        Assert.False(res.Processed);
+        Assert.True(res.DeadLettered);
+    }
+}
+```
+
+Exit criteria for this artifact
+
+· Every endpoint from 01 §E3 has D1, D2, D6 tests
+· Every capability-gated endpoint has D3, D4
+· Every consent-scoped endpoint has D5
+· Every worker has D7
+· Zero P0 findings remain unfixed
+· Suite runs in under 3 minutes in CI
+
+Gap this closes
+
+G-A1 (no authorization tests) and G-A17 (no idempotency spec) — the D-series
+double-submit cases are added as class D8 in the next revision.
+
+```
+
+---
+
+# ARTIFACT 03 — `03-entity-ledger.md`
+
+```markdown
+# Entity Ledger v2.0
+Purpose: Single source of truth for every entity, its owner, its lifecycle,
+and its disposition from v1.1. Target: 25 aggregates, ~70 total entities.
+
+## 1. Aggregate Roots (25)
+
+An aggregate root is the only entry point for transactional writes to its
+cluster. No module reads another module's tables.
+
+| New ID | Aggregate | Module | Owns | Concurrency | Key invariant |
+|---|---|---|---|---|---|
+| A-01 | Person | Identity | Login, passkeys, MFA, locale | Optimistic (rowversion) | — |
+| A-02 | Organization | Org Graph | Legal identity, domains, registry IDs, status, parent/child via A-09 | Optimistic | One canonical record across both sites |
+| A-03 | Workspace | Org Graph | Tenant boundary, region, billing owner, policy | Optimistic | Every private record has exactly one owning workspace (I-06) |
+| A-04 | Membership | Identity | Person×Org standing, baseline rights | Optimistic | Baseline only; never grants scoped authority |
+| A-05 | Hat | Identity | Person×Org×ChannelRecipeInstance×Capacity×Scope×Validity | Optimistic | Hat ≤ Agreement policy (I-04); Persona never grants |
+| A-06 | ChannelRecipeInstance | Programs | Recipe version binding + org overrides + EffectiveConfig | Optimistic | Recipe version immutable once bound |
+| A-07 | DirectoryListing | Directory | Public face, field provenance, freshness | Optimistic | Public listing ≠ permission to publish relationship (I-01) |
+| A-08 | Program | Programs | Pinned BlueprintVersion, effective config, revision | Optimistic + revision | Blueprint immutable (I-02); change never silent (I-03) |
+| A-09 | Relationship | Org Graph | Typed, directed, time-bound org link, disclosure setting | Optimistic | Typed: parent/division/franchise/partner/competitor |
+| A-10 | CollaborationAgreement | Agreements | Parties, sharing policy, terms, retention | Optimistic | Sharing only through active Agreement (SR-03) |
+| A-11 | EvidenceRecord | Evidence | Sourced claim + provenance + expiry + audience | Optimistic | Provenance and expiry mandatory |
+| A-12 | PassportShare | Evidence | Evidence×Recipient×Purpose×Expiry | Optimistic | Revocation blocks new use immediately (I-05) |
+| A-13 | ConsentGrant | Agreements | Subject×Scope×Audience×Purpose×Expiry×Revocation | Optimistic | Purpose-scoped, revocable (SR-04) |
+| A-14 | Introduction | Journeys | Brief, status, SLA, participants | Optimistic | Double opt-in required (J-02) |
+| A-15 | JourneyInstance | Journeys | Journey ref, version, state, participants, milestones | Optimistic + state machine | Engine-agnostic; every transition audited |
+| A-16 | Opportunity | Revenue | Pursuit, participants, contributions | Optimistic | — |
+| A-17 | DealRegistration | Revenue | Claim, policy version, decision, appeal | Optimistic | Precedence by policy, never hard-coded timestamp (I-07) |
+| A-18 | AttributionDecision | Revenue | Versioned credit allocation + evidence | Optimistic | Separate from entitlement (I-09) |
+| A-19 | FinancialJournal | Revenue | Balanced entries, reversals, reconciliation | Append-only + reversal | Decimal+currency, never float (I-10) |
+| A-20 | ContentCard | Content | Type, schema version, data, locale, status, provenance | Optimistic | Card never owns placement |
+| A-21 | ContentPage | Content | Layout, card refs, SEO metadata, locale | Optimistic | Page never owns card content |
+| A-22 | Publication | Content | Target, state, schedule, version | Optimistic | SEO gates apply here only |
+| A-23 | IntegrationConnection | Integrations | Credential ref, mappings, sync state | Optimistic | Credentials are refs, never rows (SR-08) |
+| A-24 | Subscription | Billing | Plan, entitlement keys, usage | Optimistic | Entitlements checked in domain layer, not UI |
+| A-25 | AgentPrincipal | Identity | Issuer, scopes, expiry, bound Hat, max scope | Optimistic | Delegated scopes only, never full session (SR-10) |
+
+## 2. Associative Objects (first-class, own lifecycle, not aggregates)
+
+| ID | Object | Links | Why first-class | Owner module |
+|---|---|---|---|---|
+| H-02 | Membership (=A-04) | Person × Org × Workspace | Multi-org membership is normal | Identity |
+| H-01 | Hat (=A-05) | Person × Org × RecipeInstance × Capacity × Scope | Authorization subject; multi-hat = multiple rows | Identity |
+| H-03 | Relationship (=A-09) | Org × Org (typed) | Org hierarchies without special-casing | Org Graph |
+| H-04 | AgreementParty | Agreement × Org × sharing scope | Agreements may have >2 parties | Agreements |
+| H-05 | ProgramEnrollment | Org × Program × RecipeInstance × tier × terms | One org, many programs | Programs |
+| H-06 | HatDelegation | Hat × Hat (delegate) × expiry | Delegate-of-delegate needs a ceiling (see G-A4) | Identity |
+| H-07 | CardPlacement | Card × Page × position | Cards are reused across pages | Content |
+
+## 3. Immutable Entities (identified, never mutated; new version = new row)
+
+| ID | Entity | Module | Why immutable |
+|---|---|---|---|
+| I-01 | BlueprintVersion | Programs | Programs pin a version (I-02) |
+| I-02 | ChannelRecipe | Programs | Versioned composition (Artifact 08) |
+| I-03 | JourneyDefinition | Journeys | YAML compiled; versioned by content hash |
+| I-04 | PolicyVersion | Authorization | Every decision cites a policy version |
+| I-05 | VerticalPack | Programs | Configuration bundle |
+| I-06 | Explorer | Content | Query definition + presentation config |
+| I-07 | ToolDefinition | Integrations | Named Tool + JSON schema + version (see G-A20) |
+
+## 4. Derived / Projections (rebuildable, never authoritative)
+
+| ID | Projection | Source of truth | Rebuild trigger |
+|---|---|---|---|
+| P-01 | InboxItem | JourneyInstance + WorkItem | Journey transition |
+| P-02 | MatchRecommendation | Listing facts + scoring config | Fact change or config change |
+| P-03 | EffectiveConfigView | ChannelRecipeInstance | Reconfiguration |
+| P-04 | PublicProjection (per entity type) | Approved fields only | Publication event |
+| P-05 | PartnerHealthSignal | Journey milestones | Milestone event |
+| P-06 | SearchIndex | PublicProjection | Publication event |
+
+Rule: a projection may be deleted and rebuilt at any time. If deleting it loses
+information, it was not a projection.
+
+## 5. Value Objects (no identity, immutable)
+
+| VO | Used by | Definition |
+|---|---|---|
+| Money | A-19, A-24 | decimal(19,4) + ISO 4217 currency |
+| Provenance | A-07, A-11, A-20 | {source, sourceDate, reviewer, trustLabel, verifiedAt} |
+| TrustLabel | Provenance | Enum: CompanyAsserted, DocumentReviewed, RegistryChecked, CounterpartyConfirmed, Expired, Disputed |
+| EffectiveConfig | A-06, A-08 | {resolvedJson, hash, layers[], lockedFields[]} |
+| SlaTimer | A-14, A-15 | {duration, startedAt, pausedAt?, breachedAt?} |
+| Scope | A-05, A-12, A-13, A-25 | Enum: WholeOrg, OneProgram, OneRelationship, OneJourney |
+| Capacity | A-05 | Enum: OrgAdmin, ProgramSponsor, ProgramPartner, RelationshipParticipant, Buyer, Reviewer, Delegate |
+| PurposeCode | A-12, A-13 | Controlled taxonomy — see G-A11 |
+| Hash | A-15, A-22, I-03, I-04 | SHA-256 over canonical JSON |
+
+## 6. Reconciliation Table — v1.1 IDs → v2.0 disposition
+
+Every v1.1 entity is accounted for. Nothing silently dropped.
+
+| v1.1 ID | v1.1 Name | v2.0 Disposition | Rationale |
+|---|---|---|---|
+| A-01 | Person | → A-01 Perso
